@@ -24,7 +24,9 @@ drop.post() { req in
         let giphyResponse = try drop.client.get(giphySearchFullURL)
         
         if let datas = giphyResponse.json?["data"]?.array, datas.count > 0, let url = datas[0].object?["images"]?.object?["fixed_height"]?.object?["url"] {
-            let attachment = Attachment(imageUrl: url.string ?? "")
+            
+            let actions = [ActionType.upVote, ActionType.downVote]
+            let attachment = Attachment(imageUrl: url.string ?? "", actions: actions)
             let response = SlackResponse(text: "Coucou", attachments: [attachment])
             
             return response
