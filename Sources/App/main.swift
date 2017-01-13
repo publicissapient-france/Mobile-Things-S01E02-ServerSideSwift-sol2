@@ -12,7 +12,8 @@ drop.get { req in
 
 drop.post() { req in
     guard let text = req.json?["text"]?.string else {
-        throw Abort.badRequest
+        let errorMessage = "\(String(bytes: req.body.bytes ?? Bytes(), encoding: String.Encoding.utf8)) is not a valid request)"
+        throw Abort.custom(status: .badRequest, message: errorMessage)
     }
     
     do {
@@ -22,8 +23,8 @@ drop.post() { req in
         if let imageURL = giphyResponse.json?["embed_url"] {
             return "OK"
         }
-    } catch {
-        throw Abort.badRequest
+    } catch let error {
+        throw Abort.custom(status: .internalServerError, message: error.localizedDescription)
     }
 
     return "{ text: \"No gihpy found\" }"
