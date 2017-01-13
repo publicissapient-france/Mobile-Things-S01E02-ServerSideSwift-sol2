@@ -11,7 +11,7 @@ drop.get { req in
 }
 
 drop.post() { req in
-    guard let text = req.json?["text"]?.string else {
+    guard let text = req.data["text"]?.string else {
         let errorMessage = "\(String(bytes: req.body.bytes ?? Bytes(), encoding: String.Encoding.utf8)) is not a valid request)"
         throw Abort.custom(status: .badRequest, message: errorMessage)
     }
