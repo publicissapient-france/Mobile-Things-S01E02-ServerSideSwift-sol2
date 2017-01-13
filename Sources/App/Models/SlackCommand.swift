@@ -6,7 +6,6 @@
 //
 //
 
-import Fluent
 import Foundation
 import HTTP
 import Vapor

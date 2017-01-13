@@ -2,7 +2,9 @@ import HTTP
 import Vapor
 
 let drop = Droplet()
-let publicGiphyApiKey = "dc6zaTOxFJmzC"
+
+let giphySearchBaseURL = "http://api.giphy.com/v1/gifs/search?q="
+let publicGiphyApiKeyParameterURL = "&api_key=dc6zaTOxFJmzC"
 
 drop.get { req in
     return try drop.view.make("welcome", [
@@ -18,10 +20,14 @@ drop.post() { req in
     
     do {
         let slackCommand = try SlackCommand(request: req)
-        let giphyResponse = try drop.client.get("http://api.giphy.com/v1/gifs/search?q=\(slackCommand.text)&api_key=\(publicGiphyApiKey)")
+        let giphySearchFullURL = giphySearchBaseURL + slackCommand.text.value + publicGiphyApiKeyParameterURL
+        let giphyResponse = try drop.client.get(giphySearchFullURL)
         
-        if let imageURL = giphyResponse.json?["embed_url"] {
-            return "OK"
+        if let datas = giphyResponse.json?["data"]?.array, datas.count > 0, let url = datas[0].object?["url"] {
+            let attachment = Attachment(imageUrl: url.string ?? "")
+            let response = SlackResponse(text: "Coucou", attachments: [attachment])
+            
+            return response
         }
     } catch let error {
         throw Abort.custom(status: .internalServerError, message: error.localizedDescription)
