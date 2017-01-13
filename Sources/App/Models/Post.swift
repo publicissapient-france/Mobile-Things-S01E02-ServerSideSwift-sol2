@@ -1,6 +1,7 @@
 import Vapor
 import Fluent
 import Foundation
+import HTTP
 
 final class Post: Model {
     var id: Node?
