@@ -23,7 +23,7 @@ drop.post() { req in
         let giphySearchFullURL = giphySearchBaseURL + slackCommand.text.value + publicGiphyApiKeyParameterURL
         let giphyResponse = try drop.client.get(giphySearchFullURL)
         
-        if let datas = giphyResponse.json?["data"]?.array, datas.count > 0, let url = datas[0].object?["url"] {
+        if let datas = giphyResponse.json?["data"]?.array, datas.count > 0, let url = datas[0].object?["images"]?.object?["fixed_height"]?.object?["url"] {
             let attachment = Attachment(imageUrl: url.string ?? "")
             let response = SlackResponse(text: "Coucou", attachments: [attachment])
             
