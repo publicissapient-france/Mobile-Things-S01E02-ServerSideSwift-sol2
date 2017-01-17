@@ -38,4 +38,25 @@ drop.post() { req in
     return "{ text: \"No gihpy found\" }"
 }
 
+drop.get("auth") { req in
+    guard let code = req.data["code"] else {
+        throw Abort.serverError
+    }
+    
+    var query = [String: String]()
+    
+    query["client_id"] = "125651482789.127368141717"
+    query["client_secret"] = "c3483364c03ff8d65d6741cff047e9f1"
+    query["code"] = code.string
+    query["redirect_url"] = "https://young-meadow-71957.herokuapp.com/auth"
+    
+    let oAuthResponse = try drop.client.post("https://slack.com/api/oauth.access", headers: [:], query: query, body: Body())
+    
+    return "OK"
+}
+
+drop.post("vote") { req in
+    return ""
+}
+
 drop.run()
