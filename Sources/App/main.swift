@@ -40,7 +40,7 @@ drop.post() { req in
 
 drop.get("auth") { req in
     guard let code = req.query?["code"] else {
-        throw Abort.serverError
+        throw Abort.custom(status: .internalServerError, message: "The code received is \(req.query?["code"])")
     }
     
     var query = [String: String]()
