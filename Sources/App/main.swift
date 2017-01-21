@@ -39,7 +39,7 @@ drop.post() { req in
 }
 
 drop.get("auth") { req in
-    guard let code = req.data["code"] else {
+    guard let code = req.query?["code"] else {
         throw Abort.serverError
     }
     
