@@ -11,14 +11,14 @@ import HTTP
 import Vapor
 
 struct SlackCommand {
-    var text: Valid<GiphyName>
+    var text: Valid<Text>
     
     init(request: Request) throws {
         text = try request.data["text"].validated()
     }
 }
 
-class GiphyName: ValidationSuite {
+class Text: ValidationSuite {
     static func validate(input value: String) throws {
         let evaluation = OnlyAlphanumeric.self && Count.max(128)
         
