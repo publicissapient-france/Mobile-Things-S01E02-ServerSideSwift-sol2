@@ -9,18 +9,7 @@ let publicGiphyApiKeyParameterURL = "&api_key=dc6zaTOxFJmzC"
 
 try drop.addProvider(VaporRedis.Provider(config: drop.config))
 
-drop.get { req in
-  return try drop.view.make("welcome", [
-    "message": drop.localization[req.lang, "welcome", "title"]
-    ])
-}
-
-drop.post() { req in
-  guard let text = req.data["text"]?.string else {
-    let errorMessage = "\(String(bytes: req.body.bytes ?? Bytes(), encoding: String.Encoding.utf8)) is not a valid request)"
-    throw Abort.custom(status: .badRequest, message: errorMessage)
-  }
-  
+drop.post("giphy") { req in
   do {
     let slackCommand = try SlackCommand(request: req)
     let giphySearchFullURL = giphySearchBaseURL + slackCommand.text.value + publicGiphyApiKeyParameterURL
@@ -38,7 +27,7 @@ drop.post() { req in
     throw Abort.custom(status: .internalServerError, message: error.localizedDescription)
   }
   
-  return "{ text: \"No gihpy found\" }"
+  return Response(status: .notFound, headers: ["Content-Type": "text/plain"], body: "Pas de giphy trouvé :(")
 }
 
 drop.get("auth") { req in
@@ -61,37 +50,37 @@ drop.get("auth") { req in
 drop.post("vote") { req in
   do {
     let slackCommand = try SlackCommand(request: req)
-    let giphyId = slackCommand.text
+    let giphyId = slackCommand.text.value.string!
     
-    if var cache = try drop.cache.get("giphyVotes1")?.array {
+    if var cache = try drop.cache.get("giphyVotes")?.array {
       var giphyVotes = try cache.map { try GiphyVote(node: $0 as! Node) }
       
-      if let index = giphyVotes.index(where: { $0.giphyId == giphyId.value.string }) {
+      if let index = giphyVotes.index(where: { $0.giphyId == giphyId }) {
         var giphyVote = giphyVotes[index] 
         
         giphyVote.numberOfVotes? += 1
         giphyVotes[index] = giphyVote
       
-        try drop.cache.set("giphyVotes1", Node(giphyVotes.map({ try $0.makeNode() })))
+        try drop.cache.set("giphyVotes", Node(giphyVotes.map({ try $0.makeNode() })))
       } else {
-        let giphyVote = GiphyVote(giphyId: giphyId.value.string!, numberOfVotes: 1)
+        let giphyVote = GiphyVote(giphyId: giphyId, numberOfVotes: 1)
         
         giphyVotes.append(giphyVote)
 
-        try drop.cache.set("giphyVotes1", Node(giphyVotes.map({ try $0.makeNode() })))
+        try drop.cache.set("giphyVotes", Node(giphyVotes.map({ try $0.makeNode() })))
       }
     } else {
       var giphyVotes = [Node]()
-      var giphyVote = GiphyVote(giphyId: giphyId.value.string!, numberOfVotes: 1)
+      var giphyVote = GiphyVote(giphyId: giphyId, numberOfVotes: 1)
       
       try giphyVotes.append(giphyVote.makeNode())
-      try drop.cache.set("giphyVotes1", Node(giphyVotes))
+      try drop.cache.set("giphyVotes", Node(giphyVotes))
     }
   } catch let error {
     throw Abort.custom(status: .internalServerError, message: error.localizedDescription)
   }
 
-  return ""
+  return Response(status: .ok, headers: ["Content-Type": "text/plain"], body: "C'est tout bon !")
 }
 
 drop.run()
